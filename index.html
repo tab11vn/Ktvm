@@ -94,6 +94,11 @@ body.review .node.d2:not(.shown),body.review .node.sub:not(.shown){filter:blur(6
 body.review .node.d2,body.review .node.sub{cursor:pointer}
 body.review .node.has::after{display:none}
 
+/* chuyển chương */
+.pager{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pager button{border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:12px 14px;font-weight:600;font-size:.9rem;cursor:pointer;min-width:0}
+.pager button:disabled{opacity:.4;cursor:default}
+.pager #next{text-align:right}
 /* công thức */
 .formulas{padding:16px 22px 20px}
 .formulas h3{margin:0 0 12px;font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
@@ -101,8 +106,44 @@ body.review .node.has::after{display:none}
 .fgrid div{font-family:var(--mono);font-size:.84rem;padding:9px 12px;border-radius:8px;background:var(--soft);border-left:3px solid var(--c4);overflow-wrap:anywhere}
 .note{padding:12px 22px;font-size:.84rem;color:var(--muted);border-left:3px solid var(--c1);background:var(--surface);border-radius:0 10px 10px 0;margin:0}
 
-@media (max-width:700px){.bar{position:static}}
-@media (max-width:560px){.intro{flex-direction:column;gap:8px}.node{max-width:14em}.scroll{padding:20px 12px}}
+@media (max-width:700px){
+  body{font-size:16px;padding-bottom:env(safe-area-inset-bottom,0px)}
+  header.top{padding-block:20px 10px}
+  .bar{position:static;padding-block:8px}
+  .bar .in{flex-direction:column;flex-wrap:nowrap;align-items:stretch;gap:8px}
+  .tabs,.tools{min-width:0;max-width:100%}
+  .tabs{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;margin-inline:-4px;padding-inline:4px}
+  .tabs::-webkit-scrollbar{display:none}
+  .tabs button{flex:none;padding:10px 15px;font-size:.9rem}
+  .tools{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .tools button{padding:11px 4px;font-size:.84rem}
+  .tools #review{grid-column:1/-1}
+  main{padding-block:14px 32px;gap:14px}
+  .intro{flex-direction:column;gap:6px;padding:16px}
+  .num{font-size:2rem}
+  .intro h2{font-size:1.15rem}
+  .zoom{display:none}
+  .maphead{padding:10px 14px}
+  .legend{font-size:.76rem;gap:10px}
+  .scroll{padding:14px 12px 18px;overflow:visible}
+  #map{font-size:15px}
+  /* cây dọc: thụt lề thay cho cây ngang */
+  .branch{flex-direction:column;align-items:stretch}
+  .kids{padding-left:12px;margin-left:8px;border-left:2px solid var(--c,var(--line))}
+  .kids::before,.kids>.branch::before,.kids>.branch::after{display:none}
+  .kids>.branch{padding:0;margin-top:8px}
+  .kids>.branch:first-child{margin-top:8px}
+  .node{width:auto;max-width:none;padding:.7em .9em;font-size:.95em;line-height:1.45}
+  .node.root{max-width:none;font-size:1.02em}
+  .node.has{display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%}
+  .node.has::after{margin-left:auto;font-size:1.2em;line-height:1}
+  .node.f{font-size:.86em}
+  .formulas{padding:14px 16px 16px}
+  .fgrid{grid-template-columns:1fr}
+  .fgrid div{font-size:.9rem}
+  .note{padding:12px 14px}
+  .pager button{padding:14px 10px}
+}
 @media print{.bar,.tools,.zoom{display:none}body{background:#fff}.card{break-inside:avoid}.scroll{overflow:visible}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
@@ -110,7 +151,7 @@ body.review .node.has::after{display:none}
 <body>
 <header class="top"><div class="in">
   <h1>Mind map Kinh tế vi mô</h1>
-  <p class="sub">Bảy chương, mỗi chương một sơ đồ. Đọc từ trái sang phải: chủ đề lớn, ý chính, chi tiết. Dùng “Chế độ ôn tập” để che nội dung và tự kiểm tra trí nhớ.</p>
+  <p class="sub">Bảy chương, mỗi chương một sơ đồ. Đọc từ chủ đề lớn đến ý chính rồi chi tiết. Dùng “Chế độ ôn tập” để che nội dung và tự kiểm tra trí nhớ.</p>
 </div></header>
 
 <div class="bar"><div class="in">
@@ -135,6 +176,7 @@ body.review .node.has::after{display:none}
   </section>
   <section class="card formulas" id="fbox" hidden><h3>Công thức cần nhớ</h3><div class="fgrid" id="fgrid"></div></section>
   <p class="note" id="note" hidden></p>
+  <nav class="pager" aria-label="Chuyển chương"><button id="prev" type="button"></button><button id="next" type="button"></button></nav>
 </main>
 
 <script>
@@ -291,7 +333,7 @@ const CH=[
 
 const $=id=>document.getElementById(id);
 const norm=n=>typeof n==='string'?{t:n,k:[]}:n;
-let z=1;
+let z=1,cur=0;
 
 function build(n,depth){
   n=norm(n);
@@ -332,11 +374,19 @@ function render(i){
   $('fbox').hidden=!fs.length;
   $('fgrid').replaceChildren(...fs.map(t=>{const d=document.createElement('div');d.textContent=t;return d;}));
   document.querySelectorAll('#tabs button').forEach((b,j)=>b.setAttribute('aria-selected',String(j===i)));
+  const sel=document.querySelector('#tabs button[aria-selected="true"]');
+  if(sel)try{const t=$('tabs');t.scrollTo({left:sel.offsetLeft-16,behavior:'smooth'})}catch(e){}
+  cur=i;
+  const pv=$('prev'),nx=$('next');
+  pv.disabled=i===0;nx.disabled=i===CH.length-1;
+  pv.textContent=i>0?'← '+CH[i-1].tab:'';nx.textContent=i<CH.length-1?CH[i+1].tab+' →':'';
 }
 function go(i){render(i);try{history.replaceState(null,'','#'+CH[i].id)}catch(e){}window.scrollTo({top:0})}
 
 CH.forEach((c,i)=>{const b=document.createElement('button');b.type='button';b.textContent=c.tab;b.addEventListener('click',()=>go(i));$('tabs').appendChild(b);});
 
+$('prev').addEventListener('click',()=>{if(cur>0)go(cur-1)});
+$('next').addEventListener('click',()=>{if(cur<CH.length-1)go(cur+1)});
 $('review').addEventListener('click',e=>{
   const on=document.body.classList.toggle('review');
   e.currentTarget.setAttribute('aria-pressed',String(on));$('hint').hidden=!on;
