@@ -1,0 +1,359 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mind map Kinh tế vi mô</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Bố cục: thanh chương cố định phía trên, mỗi chương một mind map ngang, kèm khung "Công thức cần nhớ" và chế độ ôn tập che nội dung để tự kiểm tra */
+:root{
+  --bg:#f4f5f7; --surface:#fff; --soft:#eef0f4; --fg:#18202f; --muted:#586174; --line:#d3d8e1;
+  --ink:#1a2b4c; --ink-fg:#fff;
+  --c1:#c2410c; --c2:#0f766e; --c3:#6d28d9; --c4:#1d4ed8; --c5:#be185d; --c6:#4d7c0f; --on:#fff;
+  --font:'Be Vietnam Pro',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,Menlo,Consolas,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#10141c; --surface:#192030; --soft:#222b3d; --fg:#e8ecf3; --muted:#a3aec2; --line:#344057;
+  --ink:#3b538c; --ink-fg:#fff;
+  --c1:#fb923c; --c2:#2dd4bf; --c3:#a78bfa; --c4:#60a5fa; --c5:#f472b6; --c6:#a3e635; --on:#0d1117; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#10141c; --surface:#192030; --soft:#222b3d; --fg:#e8ecf3; --muted:#a3aec2; --line:#344057;
+  --ink:#3b538c; --ink-fg:#fff;
+  --c1:#fb923c; --c2:#2dd4bf; --c3:#a78bfa; --c4:#60a5fa; --c5:#f472b6; --c6:#a3e635; --on:#0d1117; color-scheme:dark}
+
+*{box-sizing:border-box}
+html{scroll-padding-top:70px}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--font);font-size:15px;line-height:1.55}
+.in{max-width:1240px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+button{font:inherit;color:inherit}
+button:focus-visible{outline:2px solid var(--c4);outline-offset:2px}
+
+header.top{padding-block:28px 14px}
+h1{margin:0;font-size:clamp(1.6rem,4vw,2.4rem);line-height:1.15;font-weight:800;letter-spacing:-.02em;text-wrap:balance}
+.sub{margin:8px 0 0;color:var(--muted);max-width:68ch}
+
+.bar{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--line);padding-block:10px}
+.bar .in{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.tabs{display:flex;gap:6px;flex-wrap:wrap}
+.tabs button{font-size:.85rem;font-weight:600;padding:7px 13px;border-radius:999px;border:1px solid var(--line);background:var(--surface);cursor:pointer}
+.tabs button[aria-selected="true"]{background:var(--ink);color:var(--ink-fg);border-color:var(--ink)}
+.tools{display:flex;gap:6px;flex-wrap:wrap}
+.tools button{font-size:.8rem;font-weight:500;padding:6px 11px;border-radius:8px;border:1px solid var(--line);background:var(--surface);cursor:pointer}
+.tools button[aria-pressed="true"]{background:var(--c4);color:var(--on);border-color:var(--c4)}
+
+main{padding-block:20px 56px;display:flex;flex-direction:column;gap:18px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;min-width:0}
+.intro{padding:18px 22px;display:flex;gap:18px;align-items:flex-start}
+.num{flex:none;font-weight:800;font-size:2.6rem;line-height:1;color:var(--ink);opacity:.9;min-width:1.2ch}
+:root[data-theme="dark"] .num{color:#9db3ee}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .num{color:#9db3ee}}
+.intro h2{margin:0 0 6px;font-size:1.25rem;line-height:1.3;text-wrap:balance}
+.intro p{margin:0;color:var(--muted);max-width:75ch}
+.intro p b{color:var(--fg)}
+
+.maphead{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 18px;border-bottom:1px solid var(--line)}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:.78rem;color:var(--muted)}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px;border:1.5px solid var(--c4)}
+.legend i.a{background:var(--c4)} .legend i.c{border-style:dashed;border-width:1px}
+.zoom{display:flex;gap:4px}
+.zoom button{width:32px;height:30px;border-radius:7px;border:1px solid var(--line);background:var(--surface);cursor:pointer;font-weight:700}
+.scroll{overflow:auto;padding:26px 20px 30px;max-height:none}
+#map{font-size:calc(15px*var(--z,1))}
+.hint{margin:0;padding:10px 18px;border-top:1px solid var(--line);font-size:.82rem;color:var(--muted)}
+
+/* cây */
+.branch{display:flex;align-items:center;position:relative}
+.kids{display:flex;flex-direction:column;position:relative;padding-left:28px}
+.kids::before{content:"";position:absolute;left:0;top:50%;width:28px;border-top:2px solid var(--c,var(--line))}
+.kids>.branch{padding:5px 0 5px 28px}
+.kids>.branch::before{content:"";position:absolute;left:0;top:50%;width:28px;border-top:2px solid var(--c,var(--line))}
+.kids>.branch::after{content:"";position:absolute;left:0;top:0;bottom:0;border-left:2px solid var(--c,var(--line))}
+.kids>.branch:first-child::after{top:50%}
+.kids>.branch:last-child::after{bottom:50%}
+.kids>.branch:only-child::after{display:none}
+.node{text-align:left;border-radius:9px;padding:.5em .8em;font-size:.88em;line-height:1.4;width:max-content;max-width:19em;
+  border:1.5px solid var(--c,var(--line));background:var(--surface);cursor:default;transition:filter .15s}
+.node.has{cursor:pointer}
+.node.has::after{content:"−";margin-left:.6em;font-weight:800;color:var(--c)}
+.branch.closed>.node.has::after{content:"+"}
+.branch.closed>.kids{display:none}
+.node.root{background:var(--ink);color:var(--ink-fg);border-color:var(--ink);font-weight:700;font-size:1em;max-width:11em;padding:.8em .95em}
+.node.root::after{display:none}
+.node.d1{background:var(--c);color:var(--on);border-color:var(--c);font-weight:700;font-size:.95em}
+.node.d1.has::after{color:var(--on)}
+.node.d2{font-weight:600;background:var(--soft)}
+.node.leaf{border-width:1px;border-style:dashed}
+.node.f{font-family:var(--mono);font-size:.82em;letter-spacing:-.01em;font-weight:500}
+
+/* ôn tập: che nội dung cấp 2 trở đi, bấm để hiện */
+body.review .node.d2:not(.shown),body.review .node.sub:not(.shown){filter:blur(6px);user-select:none}
+body.review .node.d2,body.review .node.sub{cursor:pointer}
+body.review .node.has::after{display:none}
+
+/* công thức */
+.formulas{padding:16px 22px 20px}
+.formulas h3{margin:0 0 12px;font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.fgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px}
+.fgrid div{font-family:var(--mono);font-size:.84rem;padding:9px 12px;border-radius:8px;background:var(--soft);border-left:3px solid var(--c4);overflow-wrap:anywhere}
+.note{padding:12px 22px;font-size:.84rem;color:var(--muted);border-left:3px solid var(--c1);background:var(--surface);border-radius:0 10px 10px 0;margin:0}
+
+@media (max-width:700px){.bar{position:static}}
+@media (max-width:560px){.intro{flex-direction:column;gap:8px}.node{max-width:14em}.scroll{padding:20px 12px}}
+@media print{.bar,.tools,.zoom{display:none}body{background:#fff}.card{break-inside:avoid}.scroll{overflow:visible}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<header class="top"><div class="in">
+  <h1>Mind map Kinh tế vi mô</h1>
+  <p class="sub">Bảy chương, mỗi chương một sơ đồ. Đọc từ trái sang phải: chủ đề lớn, ý chính, chi tiết. Dùng “Chế độ ôn tập” để che nội dung và tự kiểm tra trí nhớ.</p>
+</div></header>
+
+<div class="bar"><div class="in">
+  <nav class="tabs" id="tabs" aria-label="Chọn chương"></nav>
+  <div class="tools">
+    <button id="review" type="button" aria-pressed="false">Chế độ ôn tập</button>
+    <button id="collapse" type="button">Thu gọn</button>
+    <button id="expand" type="button">Mở hết</button>
+    <button id="theme" type="button">Sáng/Tối</button>
+  </div>
+</div></div>
+
+<main class="in">
+  <section class="card intro"><div class="num" id="num"></div><div><h2 id="title"></h2><p id="take"></p></div></section>
+  <section class="card">
+    <div class="maphead">
+      <div class="legend"><span><i class="a"></i>Chủ đề</span><span><i></i>Ý chính</span><span><i class="c"></i>Chi tiết</span><span>Bấm nhánh để thu hoặc mở</span></div>
+      <div class="zoom" aria-label="Phóng to thu nhỏ"><button id="zo" type="button" aria-label="Thu nhỏ">−</button><button id="zi" type="button" aria-label="Phóng to">+</button></div>
+    </div>
+    <div class="scroll"><div id="map"></div></div>
+    <p class="hint" id="hint" hidden>Đang ôn tập: nội dung chi tiết bị mờ. Bấm vào ô để xem đáp án, bấm lần nữa để che lại.</p>
+  </section>
+  <section class="card formulas" id="fbox" hidden><h3>Công thức cần nhớ</h3><div class="fgrid" id="fgrid"></div></section>
+  <p class="note" id="note" hidden></p>
+</main>
+
+<script>
+const N=(t,k,o)=>Object.assign({t,k:k||[]},o||{});
+const F=(t,k)=>N(t,k,{f:1});
+const E=(a,b)=>N(a+': '+b);
+
+const CH=[
+{id:'tong-quan',tab:'Tổng quan',title:'Kinh tế vi mô',
+ take:'<b>Mạch chung:</b> khái niệm nền (chương 1), cầu cung (2), người tiêu dùng (3), doanh nghiệp (4), rồi các cấu trúc thị trường (5, 6, 7).',
+ tree:[
+  N('1. Vấn đề cơ bản',['3 câu hỏi kinh tế','Đường PPF','Sơ đồ chu chuyển']),
+  N('2. Cầu, cung, giá',['Luật cầu, luật cung','Cân bằng QD = QS','Co giãn của cầu theo giá']),
+  N('3. Người tiêu dùng',['TU và MU','Lựa chọn tối ưu','Hàm cầu thị trường']),
+  N('4. Sản xuất và chi phí',['Hàm Cobb–Douglas','MP và AP','MC, AC, LAC']),
+  N('5. Cạnh tranh hoàn toàn',['MC = MR = P','Hòa vốn, đóng cửa']),
+  N('6. Độc quyền hoàn toàn',['MR = MC','Cách định giá','Phân biệt giá']),
+  N('7. Cạnh tranh không hoàn hảo',['Cạnh tranh độc quyền','Độc quyền nhóm'])
+ ]},
+
+{id:'c1',tab:'Chương 1',title:'Những vấn đề cơ bản về kinh tế học',
+ take:'<b>Ý chính:</b> nguồn lực khan hiếm nên xã hội phải lựa chọn. PPF cho thấy giới hạn của lựa chọn đó.',
+ note:'Trong file gốc, mục “4 hệ thống kinh tế” chỉ có tiêu đề, chưa liệt kê nội dung.',
+ tree:[
+  N('Định nghĩa',['Khoa học xã hội','Nghiên cứu cách dùng hợp lý nguồn lực khan hiếm','Sản xuất hàng hóa, dịch vụ để thỏa mãn cao nhất nhu cầu mọi thành viên']),
+  N('Vi mô và vĩ mô',[
+    N('Kinh tế vi mô',['Cá nhân, hộ gia đình, doanh nghiệp','Cung, cầu, giá cả','Co giãn cung cầu']),
+    N('Kinh tế vĩ mô',['Chính sách tiền tệ, tài khóa','Lạm phát, thất nghiệp','GDP, GNP'])]),
+  N('Chuẩn tắc và thực chứng',[
+    N('Chuẩn tắc',['Phát biểu theo quan điểm cá nhân','Nguồn gốc của bất đồng']),
+    N('Thực chứng',['Dựa trên số liệu thực tế','Chứng minh được, có khảo sát, rõ nguồn gốc'])]),
+  N('3 vấn đề cơ bản',['Sản xuất cái gì?','Sản xuất cho ai?','Sản xuất như thế nào?']),
+  N('4 hệ thống kinh tế'),
+  N('Đường PPF',[
+    N('Là gì',['Tập hợp các phối hợp tối đa sản phẩm, dịch vụ khi dùng hết nguồn lực']),
+    N('Vị trí điểm',['Trên PPF: sản xuất được','Trong PPF: điểm lãng phí','Ngoài PPF: vượt khả năng, không thực hiện được'])]),
+  N('Sơ đồ chu chuyển',['Vòng trong: dòng hàng hóa, dịch vụ giữa hộ gia đình và doanh nghiệp','Vòng ngoài (chiều ngược lại): dòng tiền tương ứng'])
+ ]},
+
+{id:'c2',tab:'Chương 2',title:'Cầu, cung và giá thị trường',
+ take:'<b>Ý chính:</b> giá tăng thì lượng cầu giảm, lượng cung tăng. Thị trường cân bằng khi QD = QS. Co giãn cho biết giá đổi thì doanh thu đổi thế nào.',
+ note:'Công thức tính Ed trong file gốc bị trống nên chưa đưa vào sơ đồ.',
+ tree:[
+  N('Nhu cầu và cầu',['Nhu cầu: sở thích tiêu dùng, chưa cần có tiền','Cầu: nhu cầu có khả năng thanh toán']),
+  N('Cách biểu diễn cầu',[
+    N('Biểu cầu',['Bảng số liệu giá và lượng cầu']),
+    N('Đường cầu',['Đồ thị giá và lượng cầu','Các yếu tố khác không đổi']),
+    N('Hàm số cầu',[F('QD = aP + b'),'Hệ số a luôn âm'])]),
+  N('Quy luật',[
+    N('Luật cầu: nghịch biến',['P tăng thì QD giảm','P giảm thì QD tăng']),
+    N('Luật cung: đồng biến',['P tăng thì QS tăng','P giảm thì QS giảm'])]),
+  N('Cân bằng thị trường',[F('QD = QS'),'Cho giá và sản lượng cân bằng']),
+  N('Co giãn của cầu theo giá (Ed)',[
+    N('Ed > 1: co giãn nhiều',['Giá và doanh thu nghịch biến','Giá tăng thì doanh thu giảm']),
+    N('Ed < 1: co giãn ít',['Giá và doanh thu đồng biến','Giá tăng thì doanh thu tăng']),
+    N('Ed = 0',['Cầu hoàn toàn không co giãn']),
+    N('Ed = ∞',['Cầu co giãn hoàn toàn','Đường cầu nằm ngang'])])
+ ]},
+
+{id:'c3',tab:'Chương 3',title:'Lý thuyết sự lựa chọn của người tiêu dùng',
+ take:'<b>Ý chính:</b> người tiêu dùng chọn rổ hàng sao cho hữu dụng biên trên mỗi đồng chi tiêu bằng nhau, trong giới hạn ngân sách.',
+ note:'Ví dụ đạo hàm trong file gốc ghi MC = 9 – 12Q + 6Q². Đạo hàm đúng của TC = 48 + 9Q – 6Q² + 3Q³ là 9 – 12Q + 9Q², sơ đồ dùng kết quả này. File gốc cũng viết MU = TC’, theo định nghĩa phải là MU = TU’.',
+ tree:[
+  N('Các khái niệm hữu dụng',[
+    N('U: hữu dụng',['Sự thỏa mãn khi tiêu dùng một sản phẩm']),
+    N('TU: tổng hữu dụng',['Toàn bộ lợi ích khi tiêu dùng một lượng nhất định trong một đơn vị thời gian']),
+    N('MU: hữu dụng biên',['Phần hữu dụng tăng thêm khi tiêu dùng thêm 1 đơn vị','Là độ dốc của đường TU',
+      F('Số liệu rời rạc: MU = ΔTU / ΔQ'),
+      N('Số liệu liên tục: lấy đạo hàm',['Ví dụ: TC = 48 + 9Q – 6Q² + 3Q³','MC = 9 – 12Q + 9Q²'])])]),
+  N('Quan hệ MU và TU',[F('MU > 0 → TU tăng'),F('MU < 0 → TU giảm'),F('MU = 0 → TU cực đại')]),
+  N('Lựa chọn tối ưu',['Thỏa mãn hệ hai phương trình',F('(1) MUx/Px = MUy/Py'),F('(2) X·Px + Y·Py = I')]),
+  N('Hàm cầu thị trường',[
+    N('Cách 1: cộng theo hoành độ',['Đổi các hàm về dạng Q = f(P) rồi cộng',F('QA = 50 – ½P'),F('QB = 40 – 2P'),F('QC = 12 – P/5'),F('QTT = 102 – 2,7P')]),
+    N('Cách 2: nhân số người giống nhau',['Ví dụ: P = 100 – 2QA, có 50 người','Đổi: QA = 50 – ½P',F('QTT = 50·QA = 2500 – 25P')])])
+ ]},
+
+{id:'c4',tab:'Chương 4',title:'Lý thuyết về sản xuất và chi phí',
+ take:'<b>Ý chính:</b> sản xuất cho biết đầu vào tạo ra bao nhiêu sản lượng, chi phí cho biết tạo ra sản lượng đó tốn bao nhiêu. MP và MC là hai mặt của cùng một quan hệ.',
+ note:'Phần lớn mục trong file gốc chỉ có tiêu đề mối quan hệ, chưa có nội dung giải thích, nên sơ đồ giữ nguyên tiêu đề.',
+ tree:[
+  N('Hàm sản xuất',[F('Ngắn hạn: Q = f(L)'),F('Dài hạn: Q = f(K, L)')]),
+  N('Quan hệ sản lượng, năng suất',['Q và L','AP (năng suất trung bình) và MP (năng suất biên)','MP và tổng sản lượng Q']),
+  N('Phối hợp yếu tố tối thiểu chi phí',[F('(4.4) MPK/PK = MPL/PL'),F('(4.5) K·PK + L·PL = TC')]),
+  N('Hàm Cobb–Douglas',[F('Q = A·K^α·L^β, 0 < α, β < 1'),
+    N('Lợi tức theo quy mô',[F('α + β = 1: không đổi'),F('α + β < 1: giảm dần'),F('α + β > 1: tăng dần')]),
+    'Ví dụ α + β = 1: tăng 20% vốn và lao động thì sản lượng tăng đúng 20%']),
+  N('Đường chi phí đơn vị',['Dạng hình các đường chi phí đơn vị','MC và AC','MC và AVC','MP và MC','AP và AVC']),
+  N('Chi phí dài hạn',[
+    'LMC và LAC',
+    N('Quy mô sản xuất tối ưu',[F('Tại Q*: LACmin = SACmin = LMC = SMC')]),
+    N('Quy mô hiệu quả',['Đường SAC tiếp xúc đường LAC tại sản lượng cần sản xuất','Chi phí tối thiểu trong dài hạn']),
+    'LMC và SMC tại sản lượng hợp lý Q1'])
+ ]},
+
+{id:'c5',tab:'Chương 5',title:'Thị trường cạnh tranh hoàn toàn',
+ take:'<b>Ý chính:</b> doanh nghiệp chấp nhận giá, nên d = P = MR = AR. Lợi nhuận tối đa tại MC = MR = P. So P với AC và AVC để quyết định sản xuất hay đóng cửa.',
+ tree:[
+  N('Đặc điểm',['Sản phẩm đồng nhất','Nhiều người mua, nhiều người bán, đều là người chấp nhận giá','Tự do gia nhập, rời bỏ thị trường','Thông tin hoàn hảo']),
+  N('Đường cầu của doanh nghiệp',['Đường nằm ngang ở mức giá thị trường P',F('d = P = MR = AR')]),
+  N('Doanh thu',[
+    N('Tổng doanh thu TR',[F('TR = P·Q')]),
+    N('Doanh thu biên MR',[F('MR = ΔTR/ΔQ = TR’ = P'),'MR trùng với đường cầu']),
+    N('Doanh thu trung bình AR',[F('AR = TR/Q = P')])]),
+  N('Tối đa hóa lợi nhuận',[F('MC = MR = P')]),
+  N('Ngắn hạn: so P với chi phí',[
+    N('P < AVCmin',['Thua lỗ','Nên đóng cửa']),
+    N('P = AVCmin',['Điểm đóng cửa']),
+    N('AVCmin < P < ACmin',['Vẫn lỗ nhưng nên tiếp tục sản xuất']),
+    N('P = ACmin',['Điểm hòa vốn','Lợi nhuận bình thường']),
+    N('P > ACmin',['Lợi nhuận siêu ngạch'])]),
+  N('Đường cung ngắn hạn',['Là phần đường SMC nằm trên AVCmin',F('MC = P')]),
+  N('Dài hạn',[F('P < ATC (TR < TC): rời thị trường'),F('P > ATC: gia nhập thị trường')])
+ ]},
+
+{id:'c6',tab:'Chương 6',title:'Thị trường độc quyền hoàn toàn',
+ take:'<b>Ý chính:</b> một người bán nên có sức mạnh định giá. Tối đa lợi nhuận tại MR = MC, nhưng giá vẫn cao hơn MR vì đường MR nằm dưới đường cầu.',
+ tree:[
+  N('Đặc điểm (ví dụ ngành điện)',['Một người bán, nhiều người mua','Không có sản phẩm thay thế tốt','Rào cản gia nhập lớn']),
+  N('Nguồn gốc lợi thế độc quyền',['Chính phủ bảo hộ','Người tiêu dùng trung thành thương hiệu','Phát minh, sáng chế']),
+  N('Cầu và doanh thu',[F('Cầu: P = aQ + b'),F('TR = aQ² + bQ (parabol)'),'MR dốc xuống, nằm dưới đường cầu','Độ dốc MR gấp đôi độ dốc đường cầu']),
+  N('Mục tiêu và điều kiện',[F('Tối đa lợi nhuận: MR = MC'),F('Tối đa doanh thu: MR = 0'),'MR = MC = AC thì lợi nhuận kinh tế luôn > 0']),
+  N('Các cách định giá',[
+    N('Tối đa sản lượng không lỗ',[F('P = AC')]),
+    N('Đạt tỷ suất lợi nhuận m%',[F('P = (1 + m%)·AC')])]),
+  N('Thuế điều tiết',['Thuế khoán (không theo sản lượng): thu bớt lợi nhuận, không hại người tiêu dùng','Thuế theo sản lượng: hại cả người tiêu dùng lẫn doanh nghiệp']),
+  N('Phân biệt giá',[
+    N('Bán gộp',['Khi cầu không đồng nhất và tương quan nghịch']),
+    N('Cấp 1',['Cùng chi phí vận hành, chia hai mức giá',E('Ví dụ','Chuyến bay: ghế thương gia, ghế thường')]),
+    N('Cấp 2',['Giá theo mức khối lượng tiêu dùng',E('Ví dụ','Taxi: km đầu giá cao, càng đi xa càng rẻ')]),
+    N('Cấp 3',['Theo độ co giãn từng thị trường','Cầu co giãn nhiều thì giá thấp hơn',E('Ví dụ','Giá điện: dịch vụ cao, sản xuất vừa, sinh hoạt thấp')]),
+    N('Lúc cao điểm',['Cùng dịch vụ, giá khác nhau theo thời gian',E('Ví dụ','Karaoke')]),
+    N('Hai phần',['Phí cố định hàng tháng, cộng phí theo mức dùng',E('Ví dụ','Cước thuê bao điện thoại, cộng cước từng cuộc gọi')])])
+ ]},
+
+{id:'c7',tab:'Chương 7',title:'Thị trường cạnh tranh không hoàn hảo',
+ take:'<b>Ý chính:</b> cạnh tranh độc quyền có nhiều hãng, sản phẩm khác biệt. Độc quyền nhóm có ít hãng, phụ thuộc chiến lược lẫn nhau.',
+ note:'Các mô hình Cournot, cầu gãy, cartel có ví dụ ở giáo trình trang 200 đến 212.',
+ tree:[
+  N('Cạnh tranh độc quyền (ví dụ dầu gội)',[
+    N('Đặc điểm',['Nhiều doanh nghiệp bán cùng loại sản phẩm','Gia nhập, rút lui tương đối dễ','Quyết định giá và sản lượng không ảnh hưởng trực tiếp lẫn nhau','Sản phẩm thay thế được nhưng không hoàn toàn']),
+    N('Cân bằng',[F('Ngắn hạn: MR = MC, có thể có lợi nhuận'),F('Dài hạn: lợi nhuận toàn ngành = 0'),F('Dài hạn: SMC = LMC = MR và SAC = LAC = P0')]),
+    N('So với cạnh tranh hoàn toàn',['Giá cao hơn','Sản lượng thấp hơn',F('P > MC, quy mô nhỏ hơn tối ưu (Q0 < Q*)'),'Kém hiệu quả hơn, nhưng sản phẩm đa dạng']),
+    N('Nguồn thế lực thị trường',['Đường cầu dốc xuống','Độc quyền sản phẩm khác biệt của mình','Có nhóm khách hàng trung thành'])]),
+  N('Độc quyền nhóm (ví dụ xe ô tô)',[
+    N('Đặc điểm',['Rất ít doanh nghiệp','Sản phẩm giống nhau (xăng, thép) hoặc khác biệt (ô tô, máy bay)','Gia nhập, rời khỏi khó','Phụ thuộc chiến lược lẫn nhau']),
+    N('Mô hình Cournot',['Coi sản lượng đối thủ là cố định','Đường phản ứng: sản lượng tối ưu khi biết sản lượng đối thủ','Đường hợp đồng: tối đa hóa lợi nhuận chung',
+      F('Cầu P = b – Q, AC = MC = a'),F('Đường phản ứng: Q1 = (b – a)/2 – Q2')]),
+    N('Mô hình đường cầu gãy',['Không giải thích được cách hình thành giá','Thể hiện sự cứng nhắc về giá','Một hãng giảm giá thì các hãng khác giảm theo','Tính giá tối đa lợi nhuận: cho hai đoạn cầu bằng nhau']),
+    N('Hợp tác',['Lãnh đạo giá: một hãng tăng giá, các hãng khác tăng theo','Cartel: thỏa thuận công khai (ví dụ OPEC)','Liên minh thì giá tăng, sản lượng giảm']),
+    N('Kết quả và chiến lược',['Sản lượng luôn nhỏ hơn cạnh tranh hoàn toàn','Cạnh tranh chủ yếu bằng quảng cáo và dịch vụ hậu mãi'])])
+ ]}
+];
+
+
+const $=id=>document.getElementById(id);
+const norm=n=>typeof n==='string'?{t:n,k:[]}:n;
+let z=1;
+
+function build(n,depth){
+  n=norm(n);
+  const has=n.k&&n.k.length;
+  const b=document.createElement('div');b.className='branch';
+  const nd=document.createElement(has?'button':'div');
+  nd.className='node '+(depth===1?'d1':depth===2?'d2':'')+(has?' has':'')+(depth>2?' sub':'')+(!has&&depth>2?' leaf':'')+(n.f?' f':'');
+  nd.textContent=n.t;
+  if(has){nd.type='button';nd.setAttribute('aria-expanded','true');}
+  b.appendChild(nd);
+  nd.addEventListener('click',()=>{
+    if(document.body.classList.contains('review')&&depth>=2){nd.classList.toggle('shown');return;}
+    if(has){const c=b.classList.toggle('closed');nd.setAttribute('aria-expanded',String(!c));}
+  });
+  if(has){
+    const k=document.createElement('div');k.className='kids';
+    n.k.forEach(x=>k.appendChild(build(x,depth+1)));
+    b.appendChild(k);
+  }
+  return b;
+}
+
+function formulas(list,out){(list||[]).forEach(x=>{x=norm(x);if(x.f)out.push(x.t);formulas(x.k,out);});return out;}
+
+function render(i){
+  const ch=CH[i];
+  $('num').textContent=i===0?'★':i;
+  $('title').textContent=ch.title;
+  $('take').innerHTML=ch.take;
+  const nt=$('note');nt.hidden=!ch.note;nt.textContent=ch.note||'';
+  const root=document.createElement('div');root.className='branch';
+  const r=document.createElement('div');r.className='node root';r.textContent=ch.title;root.appendChild(r);
+  const k=document.createElement('div');k.className='kids';
+  ch.tree.forEach((n,j)=>{const b=build(n,1);b.style.setProperty('--c','var(--c'+((j%6)+1)+')');k.appendChild(b);});
+  root.appendChild(k);
+  $('map').replaceChildren(root);
+  const fs=formulas(ch.tree,[]);
+  $('fbox').hidden=!fs.length;
+  $('fgrid').replaceChildren(...fs.map(t=>{const d=document.createElement('div');d.textContent=t;return d;}));
+  document.querySelectorAll('#tabs button').forEach((b,j)=>b.setAttribute('aria-selected',String(j===i)));
+}
+function go(i){render(i);try{history.replaceState(null,'','#'+CH[i].id)}catch(e){}window.scrollTo({top:0})}
+
+CH.forEach((c,i)=>{const b=document.createElement('button');b.type='button';b.textContent=c.tab;b.addEventListener('click',()=>go(i));$('tabs').appendChild(b);});
+
+$('review').addEventListener('click',e=>{
+  const on=document.body.classList.toggle('review');
+  e.currentTarget.setAttribute('aria-pressed',String(on));$('hint').hidden=!on;
+  if(on)document.querySelectorAll('#map .branch.closed').forEach(b=>{b.classList.remove('closed');});
+  document.querySelectorAll('#map .node.shown').forEach(n=>n.classList.remove('shown'));
+});
+$('collapse').addEventListener('click',()=>document.querySelectorAll('#map .kids>.branch').forEach(b=>{if(b.querySelector(':scope>.kids')){b.classList.add('closed');b.firstChild.setAttribute('aria-expanded','false');}}));
+$('expand').addEventListener('click',()=>document.querySelectorAll('#map .branch.closed').forEach(b=>{b.classList.remove('closed');b.firstChild.setAttribute('aria-expanded','true');}));
+const setZ=v=>{z=Math.min(1.5,Math.max(.7,v));$('map').style.setProperty('--z',z);};
+$('zi').addEventListener('click',()=>setZ(z+.1));$('zo').addEventListener('click',()=>setZ(z-.1));
+$('theme').addEventListener('click',()=>{
+  const r=document.documentElement;
+  const dark=r.dataset.theme?r.dataset.theme==='dark':matchMedia('(prefers-color-scheme:dark)').matches;
+  r.dataset.theme=dark?'light':'dark';
+});
+function fromHash(){const i=CH.findIndex(c=>c.id===location.hash.slice(1));render(i<0?0:i);}
+window.addEventListener('hashchange',fromHash);fromHash();
+</script>
+</body>
+</html>
